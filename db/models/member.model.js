@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
+import { BookSchema } from "./book.model.js";
 const { Schema, model } = mongoose;
 
-const MemberSchema = new Schema({
+export const MemberSchema = new Schema({
   code: {
     type: String,
     required: true,
@@ -10,7 +11,19 @@ const MemberSchema = new Schema({
   name: {
     type: String,
     required: true,
-  }
+  },
+  penalize_date: {
+    type: Date
+  },
+  borrowed_book: [{
+    book: {
+      type: Schema.Types.ObjectId,
+      ref: "Book"
+    },
+    return_date: {
+      type: Date
+    }
+  }]
 });
 
 const Member = model("Member", MemberSchema);

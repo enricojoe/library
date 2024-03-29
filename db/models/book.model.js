@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
+import { MemberSchema } from "./member.model.js";
 const { Schema, model } = mongoose;
 
-const BookSchema = new Schema({
+export const BookSchema = new Schema({
   code: {
     type: String,
     required: true,
@@ -19,6 +20,10 @@ const BookSchema = new Schema({
     type: Number,
     default: 0,
   },
+  borrowed_by: [{
+    type: Schema.Types.ObjectId,
+    ref: "Member"
+  }]
 });
 
 const Book = model("Book", BookSchema);

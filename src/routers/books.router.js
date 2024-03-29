@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { helloWorld } from '../handlers/books.js';
+import { getBooks } from '../handlers/book.handler.js';
 
 const books_router = Router();
 
-books_router.get('/', helloWorld);
+books_router.get('/', getBooks);
 
 export default books_router;
