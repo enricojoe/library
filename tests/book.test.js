@@ -1,9 +1,7 @@
-import mongoose from "mongoose";
-import { Request } from "supertest";
-import dotenv from 'dotenv';
-import app from "../app.js";
-
-dotenv.config();
+const mongoose = require('mongoose');
+const request = require("supertest");
+const app = require("../app.js");
+require("dotenv").config();
 
 beforeEach(async () => {
   const mongoString = process.env.DATABASE_URL;
@@ -19,9 +17,9 @@ afterEach(async () => {
 
 describe("GET /books/", () => {
   it("should return all book", async () => {
-    expect(2).toBe(2);
-    // const res = await request(app).get("/api/products");
-    // expect(res.statusCode).toBe(200);
-    // expect(res.body.length).toBeGreaterThan(0);
+    const res = await request(app).get("/books/");
+    
+    expect(res.statusCode).toBe(200);
+    expect(res.body.data.length).toBe(5);
   });
 });

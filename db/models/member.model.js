@@ -22,5 +22,4 @@ const MemberSchema = new Schema({
 
 const Member = model("Member", MemberSchema);
 
-// export default Member;
 module.exports = Member;
