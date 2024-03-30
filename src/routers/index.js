@@ -1,9 +1,10 @@
-import { Router } from "express";
-import books_router from "./books.router.js"
-import members_router from "./members.router.js"
+const express = require('express');
+const Router = express.Router;
+const books_router = require('./books.router.js');
+const members_router = require('./members.router.js');
 
 const router = Router()
 router.use("/books", books_router)
 router.use("/members", members_router)
 
-export default router
+module.exports = router;

@@ -1,30 +1,17 @@
-// Import library
-import express from 'express'
-import morgan from 'morgan'
-import mongoose from 'mongoose';
-import router from './src/routers/index.js'
-import dotenv from 'dotenv'
-dotenv.config()
+const mongoose = require("mongoose");
+const app = require("./app");
 
-// konfigurasi app
-const app = express();
-const port = 5000;
-// konfigurasi database
-const mongoString = process.env.DATABASE_URL;
-mongoose.connect(mongoString);
-const database = mongoose.connection
-database.on('error', (error) => {
-  console.log(error)
-})
+require("dotenv").config();
+const PORT = process.env.PORT || 5000;
 
-database.once('connected', () => {
-  console.log('Database Connected');
-})
-
-app.use(morgan('dev'));
-app.use(express.json());
-app.use("/", router);
-
-app.listen(port, () => {
-	console.log(`Server running at http://localhost:${port}`)
-})
+// Connecting to the database and then starting the server
+mongoose
+  .connect(process.env.DATABASE_URL)
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running at http://localhost:${PORT}`)
+    })
+  })
+  .catch((err) => {
+    console.log(err);
+  });

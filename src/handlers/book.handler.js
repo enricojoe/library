@@ -1,9 +1,11 @@
-import Book from "../../db/models/book.model.js"
+const Book = require('../../db/models/book.model.js');
 
-export const getBooks = async (req, res) => {
+exports.getBooks = async (req, res) => {
 	try {
-		const books = await Book.find();
+		var filter = { stock: { $gt: 0 } };
+		const books = await Book.find(filter).select('code title stock');
 
+		res.status(200);
 		res.json({ data: books });
 	} catch (error) {
 		console.log(error);

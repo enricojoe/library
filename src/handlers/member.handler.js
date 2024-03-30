@@ -1,9 +1,9 @@
-import Member from "../../db/models/member.model.js";
-import Book from "../../db/models/book.model.js";
+const Member = require('../../db/models/member.model.js');
+const Book = require('../../db/models/book.model.js');
 
 const MemberModel = Member;
 const BookModel = Book;
-export const getMembers = async (req, res) => {
+exports.getMembers = async (req, res) => {
 	try {
 		const members = await MemberModel.find();
 
@@ -13,96 +13,99 @@ export const getMembers = async (req, res) => {
 	}
 }
 
-export const borrowBook = async (req, res) => {
+exports.borrowBook = async (req, res) => {
 	try {
-		// Tambah pengecekan kondisi jika id buku maupun member tidak ada
-		// Tambah pengecekan jika stok buku == 0, maka tidak bisa dipinjam lagi
-		// Tambah pengecekan jika member sedang dipenalize
-		// Tambah pengecekan kondisi, jika buku yang dipinjam < 2 maka bisa meminjam
-		let book_id = { _id: req.body.book_id };
-		let book = await BookModel.findOne(book_id);
+		var book_code = { code: req.body.book_code };
+		var book = await BookModel.findOne(book_code);
 		
 		if ( !book ) {
+			res.status(404);
 			res.json({ data: {}, message: "Book not found" });
 			return
-		} else if ( book['stock'] === 0 ) {
+		} else if ( book.stock === 0 ) {
 			res.json({ data: {}, message: "Book stock is 0"});
 			return
 		}
 		
-		let member_id = { _id: req.body.member_id };
-		let member = await MemberModel.findOne(member_id);
-		let date = new Date();
+		var member_code = { code: req.body.member_code };
+		var member = await MemberModel.findOne(member_code);
+		var date = new Date();
 		if ( !member ) {
-			res.json({ data: {}, message: "Member not found" });
+			res.status(404);
+			res.json({ message: "Member not found" });
 			return
-		} else if ( member['borrowed_book'].length === 2 ) {
-			res.json({ data: {}, message: "You can't borrow book more than 2" });
+		} else if ( member.borrowed_book.length === 2 ) {
+			res.json({ message: "You can't borrow book more than 2" });
 			return
 		} else if (date < member.penalize_date) {
-			res.json({ data: {}, message: "You're being penalized" });
+			res.json({ message: "You're being penalized" });
 			return
 		}
-		let updated_book = await BookModel.findOneAndUpdate(book_id, {
+		var updated_book = await BookModel.findOneAndUpdate(book_code, {
 			$inc: { stock: -1 },
-			$push: { borrowed_by: member_id['_id'] }
+			$push: { borrowed_by: member_code.code }
 		})
-		let updated_member = await MemberModel.findOneAndUpdate(member_id, {
+		var updated_member = await MemberModel.findOneAndUpdate(member_code, {
 			$push: { borrowed_book: {
-				book: book['_id'],
+				book: book.code,
 				return_date: date.setDate(date.getDate() + 7)
 			} }
 		}, { new: true });
 
+		res.status(200);
 		res.json({ data: updated_member, message: "Book borrowed" });
 	} catch (error) {
 		console.log(error);
 	}
 }
 
-export const returnBook = async (req, res) => {
+exports.returnBook = async (req, res) => {
 	try {
-		let book_id = { _id: req.body.book_id };
-		let book = await BookModel.findOne(book_id);
+		var book_code = { code: req.body.book_code };
+		var book = await BookModel.findOne(book_code);
 		if ( !book ) {
-			res.json({ data: {}, message: "Book not found" });
+			res.status(404);
+			res.json({ message: "Book not found" });
 			return
 		}
 		
-		let member_id = { _id: req.body.member_id };
-		let member = await MemberModel.findOne(member_id);
+		var member_code = { code: req.body.member_code };
+		var member = await MemberModel.findOne(member_code);
 		if ( !member ) {
-			res.json({ data: {}, message: "Member not found" });
+			res.status(404);
+			res.json({ message: "Member not found" });
 			return
 		}
 
-		let borrowed_book = member['borrowed_book'].filter(borrowed_book => {
-			return borrowed_book.book.toString() === book._id.toString();
+		var borrowed_book = member.borrowed_book.filter(borrowed_book => {
+			return borrowed_book.book === book.code;
 		})
 		
 		if ( borrowed_book.length === 0 ) {
-			res.json({ data: {}, message: "You're not borrowing that book" })
+			res.json({ message: "You're not borrowing that book" })
 			return
 		}
 		
-		let updated_book = await BookModel.findOneAndUpdate(book_id, {
+		var updated_book = await BookModel.findOneAndUpdate(book_code, {
 			$inc: { stock: 1 }
 		})
 
-		let date = new Date();
+		var date = new Date('2024-04-09');
 		var update = {
 			$pull: {
 				borrowed_book: {
-					book: book_id['_id']
+					book: book_code.code
 				}
 			}
 		}
-		if ( borrowed_book.return_date < date ) {
+		
+		if ( borrowed_book[0].return_date < date ) {
 			update.penalize_date = date.setDate(date.getDate() + 3);
 		}
 
-		let updated_member = await MemberModel.findOneAndUpdate(member_id, update, { new: true });
+		var updated_member = await MemberModel.findOneAndUpdate(member_code, update, { new: true });
 
+		res.status(200);
 		res.json({ data: updated_member, message: "Book returned" });
 	} catch (error) {
 		console.log(error);
